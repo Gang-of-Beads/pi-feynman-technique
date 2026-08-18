@@ -116,7 +116,7 @@ function buildPracticeKickoff(topic: string): string {
  */
 function buildTeachKickoff(topic: string, canSearch: boolean): string {
   const research = canSearch
-    ? `1. 先动手研究:调用 web_search 工具(pi-web-search 提供)或你手头的其它联网工具,查清楚「${topic}」的准确定义、原理和常见误解,确保你理解准确、完整、不过时;如果 web_search 返回错误(例如当前模型不支持原生搜索),如实说出来,再尝试其它工具;`
+    ? `1. 先动手研究:调用 web_search 工具(或其它联网工具)查清楚「${topic}」的准确定义、原理和常见误解,确保你理解准确、完整、不过时;需要深度核实时,配合网页抓取工具(如 web_fetch)读原文;如果 web_search 报错,如实说出来,再尝试其它工具;`
     : `1. 先动手研究:如果你有联网工具(如 web_search、浏览器)就用它查清楚「${topic}」的准确定义、原理和常见误解;如果没有任何联网工具,直接告诉我「无法联网验证」,然后基于已有知识教学,拿不准的地方标注出来,不要编造;`;
   return `我想真正学会「${topic}」,咱们把费曼学习法闭环走一遍!
 
@@ -134,7 +134,7 @@ ${research}
 /** Instruction prefix for /feynman_answer: research first, then answer simply. */
 function buildAnswerInstruction(canSearch: boolean, studentMode: boolean): string {
   const research = canSearch
-    ? "先调用 web_search 工具(pi-web-search 提供)或其它联网工具搜索,确保答案准确;如果 web_search 报错(例如当前模型不支持原生搜索),如实说明后再作答"
+    ? "先调用 web_search 工具(或其它联网工具)搜索,确保答案准确;必要时配合网页抓取工具(如 web_fetch)读原文核实;如果 web_search 报错,如实说明后再作答"
     : "如果你有联网工具(如 web_search、浏览器)就先搜索确保准确;没有的话,如实说明这是基于已有知识的回答,不要编造";
   const role = studentMode
     ? "就这一次破例当老师,答完立刻回到 Inquisitive Student 的角色,继续提问"
@@ -253,7 +253,7 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
       }
       const canSearch = hasWebSearchTool();
       if (!canSearch) {
-        ctx.ui.notify("未检测到 web_search 工具(pi-web-search 未安装?)。教学将依赖模型已有知识,查证能力受限。", "warning");
+        ctx.ui.notify("未检测到 web_search 工具(需安装 pi-web-search 或 @bytetrue/pi-web-search 等搜索插件)。教学将依赖模型已有知识,查证能力受限。", "warning");
       }
       await startSession(ctx, topic, buildTeachKickoff(topic, canSearch));
       ctx.ui.notify(`费曼闭环开始!课题:「${topic}」。我先研究并教你,教完你把粉笔接回去。`, "info");
@@ -274,7 +274,7 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
       }
       const canSearch = hasWebSearchTool();
       if (!canSearch) {
-        ctx.ui.notify("未检测到 web_search 工具(pi-web-search 未安装?)。回答可能无法联网查证。", "warning");
+        ctx.ui.notify("未检测到 web_search 工具(需安装 pi-web-search 或 @bytetrue/pi-web-search 等搜索插件)。回答可能无法联网查证。", "warning");
       }
       const message = `${buildAnswerInstruction(canSearch, state.active)}\n\n${question}`;
       if (ctx.isIdle()) {
