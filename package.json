@@ -1,0 +1,37 @@
+{
+  "name": "pi-feynman-technique",
+  "version": "0.1.0",
+  "description": "Feynman Technique learning partner for pi: practice sessions, teach-then-recall loops, and quick plain-language answers",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "feynman",
+    "learning",
+    "teaching",
+    "education"
+  ],
+  "homepage": "https://github.com/VincentHanxiaoDu/pi-feynman-technique",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VincentHanxiaoDu/pi-feynman-technique.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VincentHanxiaoDu/pi-feynman-technique/issues"
+  },
+  "files": [
+    "index.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
