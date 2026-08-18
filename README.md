@@ -19,12 +19,12 @@ core Feynman loop of "explain it to someone else to find your own gaps".
 
 ### `/feynman_teach <topic>` — teach-then-recall loop
 
-The loop, closed: the assistant FIRST researches the topic (via
-[pi-web-search](https://pi.dev/packages/pi-web-search) or whatever web tools
-are available, and it does not make things up when none are) and teaches it
-back to you in plain language with everyday analogies. Then it hands the
-chalk back: you explain the concept from memory, and the assistant quizzes
-and corrects you as the inquisitive student.
+The loop, closed: the assistant FIRST researches the topic (searching the
+web with whatever search tools the session has — an exa-search plugin, a
+browser agent, etc. — and it does not make things up when none are) and
+teaches it back to you in plain language with everyday analogies. Then it
+hands the chalk back: you explain the concept from memory, and the assistant
+quizzes and corrects you as the inquisitive student.
 
 ```text
 /feynman_teach symmetric NAT       # research + teach, then you recall
@@ -55,9 +55,9 @@ quizzing you.
   (`/compact`) and stays consistent across the whole conversation.
 - Session state is persisted as a custom session entry, so practice mode also
   survives `/reload` and `/resume`.
-- When `pi-web-search` is installed, the teach/answer kickoffs call the
-  `web_search` tool by name and fail loudly (honestly) instead of guessing
-  when searching is unavailable.
+- The teach/answer kickoffs tell the model to "search the web" with whatever
+  search tools are registered (no plugin-specific names), and the model
+  honestly reports when it cannot verify anything online.
 
 ## Install
 
@@ -67,11 +67,6 @@ pi install git:https://github.com/VincentHanxiaoDu/pi-feynman-technique
 # npm publish && pi install npm:pi-feynman-technique
 ```
 
-Optional but recommended for research-backed teaching:
-
-```bash
-pi install npm:pi-web-search
-```
 
 ## Development
 

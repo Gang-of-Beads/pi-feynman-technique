@@ -26,10 +26,10 @@
  * the whole practice conversation. State is persisted as a custom session
  * entry, so it also survives /reload and /resume.
  *
- * Web research integrates with any installed search provider package (e.g.
- * pi-web-search, @bytetrue/pi-web-search, pi-exa-search): the /feynman_teach
- * and /feynman_answer kickoffs call the web_search tool by name when one is
- * registered, and warn when it is not.
+ * Web research is delegated to whatever web search tools the session has
+ * (e.g. an exa-search plugin, a browser agent): kickoffs tell the model to
+ * "search the web" without naming specific plugins, and warn when no search
+ * tools are registered at all.
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -117,8 +117,8 @@ function buildPracticeKickoff(topic: string): string {
  */
 function buildTeachKickoff(topic: string, canSearch: boolean): string {
   const research = canSearch
-    ? `1. Research first: use the web_search tool (or any web tools you have) to pin down the precise definition, core principles, and common misconceptions about "${topic}" so your understanding is accurate, complete, and up to date; when deep verification is needed, follow up with a page-fetch tool (e.g. web_fetch) to read sources; if web_search errors out, say so honestly and try other tools;`
-    : `1. Research first: if you have any web tools (e.g. web_search, a browser), use them to pin down the precise definition, core principles, and common misconceptions about "${topic}"; if you have no web tools at all, tell me plainly "I can't verify this online", then teach from your existing knowledge — flag anything you are unsure about instead of making it up;`;
+    ? `1. Research first: search the web (using whatever web search tools you have) to pin down the precise definition, core principles, and common misconceptions about "${topic}" so your understanding is accurate, complete, and up to date; read the best sources when you need to verify details; if searching fails, say so honestly and try another approach;`
+    : `1. Research first: search the web if you have any web search tools; if you have none at all, tell me plainly "I can't verify this online", then teach from your existing knowledge — flag anything you are unsure about instead of making it up;`;
   return `I want to truly understand "${topic}", so let's run the full Feynman loop!
 
 PHASE 1 — TEACH (in this phase you are the teacher):
@@ -135,8 +135,8 @@ PHASE 2 — HAND THE CHALK BACK (after teaching):
 /** Instruction prefix for /feynman_answer: research first, then answer simply. */
 function buildAnswerInstruction(canSearch: boolean, studentMode: boolean): string {
   const research = canSearch
-    ? "This is a /feynman_answer request: search first with web_search (or any web tools) to make sure the answer is accurate, using a page-fetch tool (e.g. web_fetch) when you need to verify a source; if web_search errors out, say so and then answer"
-    : "This is a /feynman_answer request: if you have any web tools (e.g. web_search, a browser), search first for accuracy; otherwise state plainly that this answer is based on existing knowledge and do not invent facts";
+    ? "This is a /feynman_answer request: search the web first (using whatever web search tools you have) to make sure the answer is accurate, reading sources when you need to verify; if searching errors out, say so and then answer"
+    : "This is a /feynman_answer request: if you have any web search tools, use them first for accuracy; otherwise state plainly that this answer is based on existing knowledge and do not invent facts";
   const role = studentMode
     ? "break the student persona just this once, answer directly, then immediately return to the Inquisitive Student role and keep quizzing me"
     : "keep it brief";
@@ -146,10 +146,10 @@ function buildAnswerInstruction(canSearch: boolean, studentMode: boolean): strin
 export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
   let state: FeynmanState = { active: false, topic: "" };
 
-  /** True when a web_search tool (any provider package) is registered. */
+  /** True when at least one web search tool (any provider package) is registered. */
   const hasWebSearchTool = (): boolean => {
     try {
-      return pi.getAllTools().some((t) => t.name === "web_search");
+      return pi.getAllTools().some((t) => /(search|web|browse|fetch)/i.test(t.name));
     } catch {
       return false;
     }
@@ -255,7 +255,7 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
       const canSearch = hasWebSearchTool();
       if (!canSearch) {
         ctx.ui.notify(
-          "web_search tool not detected (install a search plugin such as pi-web-search or @bytetrue/pi-web-search). Teaching will rely on the model's existing knowledge; verification will be limited.",
+          "No web search tools detected. Teaching will rely on the model's existing knowledge; verification will be limited.",
           "warning",
         );
       }
@@ -279,7 +279,7 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
       const canSearch = hasWebSearchTool();
       if (!canSearch) {
         ctx.ui.notify(
-          "web_search tool not detected (install a search plugin such as pi-web-search or @bytetrue/pi-web-search). Answers may lack online verification.",
+          "No web search tools detected. Answers may lack online verification.",
           "warning",
         );
       }
