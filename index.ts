@@ -26,9 +26,10 @@
  * the whole practice conversation. State is persisted as a custom session
  * entry, so it also survives /reload and /resume.
  *
- * Web research integrates with the pi-web-search package (npm:pi-web-search):
- * the /feynman_teach and /feynman_answer kickoffs call the web_search tool by
- * name when it is available, and warn when it is not.
+ * Web research integrates with any installed search provider package (e.g.
+ * pi-web-search, @bytetrue/pi-web-search, pi-exa-search): the /feynman_teach
+ * and /feynman_answer kickoffs call the web_search tool by name when one is
+ * registered, and warn when it is not.
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -104,8 +105,8 @@ Don't ask too many questions at once; allow me to explain, then ask 1-2 pertinen
 /** Kickoff message for the practice flow: the user teaches, the assistant quizzes. */
 function buildPracticeKickoff(topic: string): string {
   return topic
-    ? `我们用费曼技巧来练习!今天的课题是:「${topic}」。我会一点一点讲给你听,你负责提问、追问和挑错。`
-    : `我们用费曼技巧来练习!我已经准备好了,今天想给你讲一个课题。`;
+    ? `Let's practice the Feynman Technique! Today's topic: "${topic}". I'll explain it to you piece by piece — you ask questions, probe for gaps, and correct me along the way.`
+    : `Let's practice the Feynman Technique! I have my notebook ready — what topic would you like to teach me today?`;
 }
 
 /**
@@ -116,36 +117,36 @@ function buildPracticeKickoff(topic: string): string {
  */
 function buildTeachKickoff(topic: string, canSearch: boolean): string {
   const research = canSearch
-    ? `1. 先动手研究:调用 web_search 工具(或其它联网工具)查清楚「${topic}」的准确定义、原理和常见误解,确保你理解准确、完整、不过时;需要深度核实时,配合网页抓取工具(如 web_fetch)读原文;如果 web_search 报错,如实说出来,再尝试其它工具;`
-    : `1. 先动手研究:如果你有联网工具(如 web_search、浏览器)就用它查清楚「${topic}」的准确定义、原理和常见误解;如果没有任何联网工具,直接告诉我「无法联网验证」,然后基于已有知识教学,拿不准的地方标注出来,不要编造;`;
-  return `我想真正学会「${topic}」,咱们把费曼学习法闭环走一遍!
+    ? `1. Research first: use the web_search tool (or any web tools you have) to pin down the precise definition, core principles, and common misconceptions about "${topic}" so your understanding is accurate, complete, and up to date; when deep verification is needed, follow up with a page-fetch tool (e.g. web_fetch) to read sources; if web_search errors out, say so honestly and try other tools;`
+    : `1. Research first: if you have any web tools (e.g. web_search, a browser), use them to pin down the precise definition, core principles, and common misconceptions about "${topic}"; if you have no web tools at all, tell me plainly "I can't verify this online", then teach from your existing knowledge — flag anything you are unsure about instead of making it up;`;
+  return `I want to truly understand "${topic}", so let's run the full Feynman loop!
 
-第一阶段——教我(这一阶段你是老师):
+PHASE 1 — TEACH (in this phase you are the teacher):
 ${research}
-2. 然后用最通俗的语言教我:假设我对这个领域一无所知,从最基础的概念讲起,多用生活中的例子和类比;
-3. 讲清楚比讲得多重要,一次别倒一大堆,先把核心讲透。
+2. Then teach me in the plainest words: assume I know nothing about this field, start from the most basic concepts, and use plenty of everyday examples and analogies.
+3. Clarity beats volume — don't dump everything at once; nail the core first.
 
-第二阶段——换学生上场(教完以后):
-1. 明确宣布切换角色,然后进入系统提示里写的「Inquisitive Student」人设;
-2. 把粉笔递给我:请我用我自己的话、一点一点把刚学的概念讲给你听,从第一个基础概念开始;
-3. 之后你就一直是这个学生:每次最多问 1-2 个问题,追问我讲得含糊的地方,发现我讲错或理解偏了就温和地指出来,引导我自己修正。`;
+PHASE 2 — HAND THE CHALK BACK (after teaching):
+1. Explicitly announce the role switch, then take on the "Inquisitive Student" persona described in the system prompt.
+2. Hand me the chalk: ask me to explain the concept back to you, piece by piece, in my own words, starting from the first basic idea.
+3. From then on, stay in that student role: ask at most 1-2 questions at a time, dig into the parts I phrase vaguely, and gently point out — then guide me to fix — any mistakes or misunderstandings.`;
 }
 
 /** Instruction prefix for /feynman_answer: research first, then answer simply. */
 function buildAnswerInstruction(canSearch: boolean, studentMode: boolean): string {
   const research = canSearch
-    ? "先调用 web_search 工具(或其它联网工具)搜索,确保答案准确;必要时配合网页抓取工具(如 web_fetch)读原文核实;如果 web_search 报错,如实说明后再作答"
-    : "如果你有联网工具(如 web_search、浏览器)就先搜索确保准确;没有的话,如实说明这是基于已有知识的回答,不要编造";
+    ? "This is a /feynman_answer request: search first with web_search (or any web tools) to make sure the answer is accurate, using a page-fetch tool (e.g. web_fetch) when you need to verify a source; if web_search errors out, say so and then answer"
+    : "This is a /feynman_answer request: if you have any web tools (e.g. web_search, a browser), search first for accuracy; otherwise state plainly that this answer is based on existing knowledge and do not invent facts";
   const role = studentMode
-    ? "就这一次破例当老师,答完立刻回到 Inquisitive Student 的角色,继续提问"
-    : "保持简短";
-  return `(这是 /feynman_answer 请求:${research};然后用最简单、最通俗的语言,简短直接地回答下面的问题——几句话讲清楚,可以用生活类比;${role})`;
+    ? "break the student persona just this once, answer directly, then immediately return to the Inquisitive Student role and keep quizzing me"
+    : "keep it brief";
+  return `(${research}; then answer the question below in the simplest, plainest words — a few sentences, everyday analogies welcome; ${role})`;
 }
 
 export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
   let state: FeynmanState = { active: false, topic: "" };
 
-  /** True when the pi-web-search package's web_search tool is registered. */
+  /** True when a web_search tool (any provider package) is registered. */
   const hasWebSearchTool = (): boolean => {
     try {
       return pi.getAllTools().some((t) => t.name === "web_search");
@@ -171,7 +172,7 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
   const endSession = (ctx: ExtensionContext): void => {
     state = { active: false, topic: "" };
     pi.appendEntry(STATE_ENTRY_TYPE, state);
-    ctx.ui.notify("费曼练习已结束,我不再是你的学生了。", "info");
+    ctx.ui.notify("Feynman practice session ended. I'm no longer your student.", "info");
   };
 
   /** Activate the persona, persist state, and kick off the practice with a user message. */
@@ -208,14 +209,14 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
   const stopWordCompletions = (prefix: string) => {
     const matches = STOP_WORDS.filter((w) => w.startsWith(prefix.toLowerCase()));
     return matches.length > 0
-      ? matches.map((w) => ({ value: w, label: "结束费曼练习" }))
+      ? matches.map((w) => ({ value: w, label: "End the Feynman practice session" }))
       : null;
   };
 
   // /feynman_technique [topic] — you teach, the assistant is the student.
   pi.registerCommand("feynman_technique", {
     description:
-      "费曼技巧练习:你来讲解,助手扮演好奇的学生提问、追问并纠正你的误解。参数:[课题],或 off 结束。",
+      "Feynman technique practice: you teach, the assistant plays a curious student who asks questions and corrects your misunderstandings. Args: [topic], or 'off' to end.",
     getArgumentCompletions: stopWordCompletions,
     handler: async (args, ctx) => {
       const arg = args.trim();
@@ -227,8 +228,8 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
       await startSession(ctx, topic, buildPracticeKickoff(topic));
       ctx.ui.notify(
         topic
-          ? `费曼练习开始!课题:「${topic}」。我是你的学生,请开始讲解!`
-          : "费曼练习开始!我是你的学生——今天想学什么课题?",
+          ? `Feynman practice started! Topic: "${topic}". I'm your student — start explaining!`
+          : "Feynman practice started! I'm your student — what topic are we learning today?",
         "info",
       );
     },
@@ -238,7 +239,7 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
   // then hands the chalk back and becomes the inquisitive student.
   pi.registerCommand("feynman_teach", {
     description:
-      "费曼闭环:助手先联网研究并以通俗语言+生活类比教你,然后你用自己的话讲回去,助手化身学生提问纠错。参数:<课题>,或 off 结束。",
+      "Feynman loop: the assistant researches online and teaches you in plain language with analogies, then you explain it back while it quizzes you as an inquisitive student. Args: <topic>, or 'off' to end.",
     getArgumentCompletions: stopWordCompletions,
     handler: async (args, ctx) => {
       const arg = args.trim();
@@ -248,15 +249,18 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
       }
       const topic = arg || state.topic || ""; // reuse the current practice topic if no arg
       if (!topic) {
-        ctx.ui.notify("用法:/feynman_teach <课题>(例如 /feynman_teach 对称型NAT)", "warning");
+        ctx.ui.notify("Usage: /feynman_teach <topic> (e.g. /feynman_teach symmetric NAT)", "warning");
         return;
       }
       const canSearch = hasWebSearchTool();
       if (!canSearch) {
-        ctx.ui.notify("未检测到 web_search 工具(需安装 pi-web-search 或 @bytetrue/pi-web-search 等搜索插件)。教学将依赖模型已有知识,查证能力受限。", "warning");
+        ctx.ui.notify(
+          "web_search tool not detected (install a search plugin such as pi-web-search or @bytetrue/pi-web-search). Teaching will rely on the model's existing knowledge; verification will be limited.",
+          "warning",
+        );
       }
       await startSession(ctx, topic, buildTeachKickoff(topic, canSearch));
-      ctx.ui.notify(`费曼闭环开始!课题:「${topic}」。我先研究并教你,教完你把粉笔接回去。`, "info");
+      ctx.ui.notify(`Feynman loop started! Topic: "${topic}". I'll research and teach you first, then hand you the chalk.`, "info");
     },
   });
 
@@ -265,16 +269,19 @@ export default function feynmanTechniqueExtension(pi: ExtensionAPI): void {
   // the persona stays on but breaks character for this one direct answer.
   pi.registerCommand("feynman_answer", {
     description:
-      "费曼式快速答疑:先联网搜索确保准确,再用最简单通俗的话简短回答。参数:<问题>。",
+      "Feynman-style quick answer: research first, then answer briefly in the simplest words. Args: <question>.",
     handler: async (args, ctx) => {
       const question = args.trim();
       if (!question) {
-        ctx.ui.notify("用法:/feynman_answer <问题>", "warning");
+        ctx.ui.notify("Usage: /feynman_answer <question>", "warning");
         return;
       }
       const canSearch = hasWebSearchTool();
       if (!canSearch) {
-        ctx.ui.notify("未检测到 web_search 工具(需安装 pi-web-search 或 @bytetrue/pi-web-search 等搜索插件)。回答可能无法联网查证。", "warning");
+        ctx.ui.notify(
+          "web_search tool not detected (install a search plugin such as pi-web-search or @bytetrue/pi-web-search). Answers may lack online verification.",
+          "warning",
+        );
       }
       const message = `${buildAnswerInstruction(canSearch, state.active)}\n\n${question}`;
       if (ctx.isIdle()) {

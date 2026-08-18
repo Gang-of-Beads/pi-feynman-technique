@@ -14,7 +14,7 @@ core Feynman loop of "explain it to someone else to find your own gaps".
 
 ```text
 /feynman_technique              # student asks what topic you're teaching
-/feynman_technique 对称型NAT      # start practicing a specific topic
+/feynman_technique symmetric NAT # start practicing a specific topic
 ```
 
 ### `/feynman_teach <topic>` — teach-then-recall loop
@@ -27,7 +27,7 @@ chalk back: you explain the concept from memory, and the assistant quizzes
 and corrects you as the inquisitive student.
 
 ```text
-/feynman_teach 对称型NAT          # research + teach, then you recall
+/feynman_teach symmetric NAT       # research + teach, then you recall
 /feynman_teach                   # reuse the topic of an active practice session
 ```
 
@@ -39,7 +39,7 @@ the student persona once, answers directly, and immediately returns to
 quizzing you.
 
 ```text
-/feynman_answer NAT和防火墙是一回事吗?
+/feynman_answer What is the difference between NAT and a firewall?
 ```
 
 ### Ending a session
