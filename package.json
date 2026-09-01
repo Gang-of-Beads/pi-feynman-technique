@@ -12,13 +12,13 @@
     "teaching",
     "education"
   ],
-  "homepage": "https://github.com/VincentHanxiaoDu/pi-feynman-technique",
+  "homepage": "https://github.com/Gang-of-Beads/pi-feynman-technique",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/VincentHanxiaoDu/pi-feynman-technique.git"
+    "url": "git+https://github.com/Gang-of-Beads/pi-feynman-technique.git"
   },
   "bugs": {
-    "url": "https://github.com/VincentHanxiaoDu/pi-feynman-technique/issues"
+    "url": "https://github.com/Gang-of-Beads/pi-feynman-technique/issues"
   },
   "files": [
     "index.ts",
@@ -33,5 +33,6 @@
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
     "@earendil-works/pi-coding-agent": "*"
-  }
+  },
+  "author": "Gang of Beads"
 }

@@ -62,7 +62,7 @@ quizzing you.
 ## Install
 
 ```bash
-pi install git:https://github.com/VincentHanxiaoDu/pi-feynman-technique
+pi install git:https://github.com/Gang-of-Beads/pi-feynman-technique
 # or, for npm distribution:
 # npm publish && pi install npm:pi-feynman-technique
 ```
@@ -71,7 +71,7 @@ pi install git:https://github.com/VincentHanxiaoDu/pi-feynman-technique
 ## Development
 
 ```bash
-git clone https://github.com/VincentHanxiaoDu/pi-feynman-technique
+git clone https://github.com/Gang-of-Beads/pi-feynman-technique
 # edit index.ts, then in any pi session:
 pi -e ./index.ts                  # quick test
 ```
