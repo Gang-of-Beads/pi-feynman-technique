@@ -62,11 +62,17 @@ quizzing you.
 ## Install
 
 ```bash
+# from npm:
+pi install npm:pi-feynman-technique
+# or straight from git:
 pi install git:https://github.com/Gang-of-Beads/pi-feynman-technique
-# or, for npm distribution:
-# npm publish && pi install npm:pi-feynman-technique
 ```
 
+## Releasing
+
+Pushing a `v<version>` tag that matches `package.json` publishes the package to
+npm with provenance and opens a GitHub Release. Merging to `main` releases
+nothing.
 
 ## Development
 
@@ -75,6 +81,11 @@ git clone https://github.com/Gang-of-Beads/pi-feynman-technique
 # edit index.ts, then in any pi session:
 pi -e ./index.ts                  # quick test
 ```
+
+## Feedback
+
+Bugs and questions: open an issue at
+<https://github.com/Gang-of-Beads/pi-feynman-technique/issues>.
 
 ## License
 

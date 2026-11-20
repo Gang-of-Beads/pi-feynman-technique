@@ -4,6 +4,10 @@
   "description": "Feynman Technique learning partner for pi: practice sessions, teach-then-recall loops, and quick plain-language answers",
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs"
+  },
   "keywords": [
     "pi-package",
     "pi-extension",
@@ -23,6 +27,7 @@
   "files": [
     "index.ts",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "pi": {
@@ -33,6 +38,10 @@
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
     "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.5.2",
+    "typescript": "^7.0.2"
   },
   "author": "Gang of Beads"
 }
