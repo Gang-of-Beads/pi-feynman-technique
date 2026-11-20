@@ -1,0 +1,36 @@
+# CI for merge requests: typecheck plus a smoke load of index.ts through the
+# published host loader, so a broken export or a host API drift fails here and
+# not for a user. Publishing happens in publish.yml only.
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Typecheck + smoke load
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Smoke load against the current host
+        run: npm test

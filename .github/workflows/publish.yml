@@ -1,0 +1,92 @@
+# Tag-driven release: pushing a v* tag that matches package.json publishes to
+# npm with provenance and attaches the tarball to a GitHub Release. Merging to
+# main releases nothing.
+#
+# Credentials: npm trusted publishing (OIDC) is used, so this workflow path must
+# stay stable and the package must trust it on npmjs.com. That is why the
+# checkout does not persist credentials.
+name: Release (tag push)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: GitHub Release + npm publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Refuse a tag that disagrees with package.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          ver="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$ver" ]; then
+            echo "tag $GITHUB_REF_NAME does not match package.json version $ver" >&2
+            exit 1
+          fi
+
+      - name: Pack
+        id: pack
+        run: |
+          set -euo pipefail
+          mkdir -p pack-out
+          tarball="$(npm pack --pack-destination pack-out --silent)"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npm
+        run: |
+          set -euo pipefail
+          pkg="$(node -p "require('./package.json').name")"
+          ver="$(node -p "require('./package.json').version")"
+          case "$ver" in
+            *-*) dist_tag=preview ;;
+            *) dist_tag=latest ;;
+          esac
+          if npm view "$pkg@$ver" version >/dev/null 2>&1; then
+            echo "$pkg@$ver is already on npm; skipping publish"
+          else
+            npm publish "./pack-out/${{ steps.pack.outputs.tarball }}" --access public --tag "$dist_tag" --provenance
+          fi
+
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ver="$(node -p "require('./package.json').version")"
+          case "$ver" in
+            *-*) prerelease=--prerelease ;;
+            *) prerelease= ;;
+          esac
+          gh release create "$GITHUB_REF_NAME" "./pack-out/${{ steps.pack.outputs.tarball }}" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file CHANGELOG.md \
+            $prerelease
